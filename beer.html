@@ -1,0 +1,34 @@
+{% extends "base_nomap.html" %}
+{% block page_content %}
+  <body">
+    <p style="text-align:center;">
+    </div>
+  </body>
+  <div id="main_page" data-role="page">
+    <div data-role="header">
+      <a href="/start" data-role="button" data-icon="home" data-inline="true" data-ajax="false">Home</a>
+      <h1>
+      {{ beer_data["name"] }}</h1>
+    </div>
+    <div data-role="content" style="text-align:center">
+      <h2>Beer details</h2>
+      <img src="{{beer_data["img"]}}" /><br/>
+      {{ escape(beer_data["name"]) }} ({{ escape(brewery_data["name"]) }})<br/>
+      {{ brewery_data["country"] }}</br>
+      </p>
+
+      <p style="text-align:center;">
+      {{ beer_data["type"] }} <br/><br/>
+      Total Checkins: {{ beer_data["total_count"] }} <br/>
+      Avg Rating: {{ beer_data["avg_rating"]}} <br/>
+      </p>
+
+      <p style="text-align:center;">
+      <a href="/puffer/{{escape(beer_data["name"])}}?brewery={{escape(beer_data["brewery"])}}" data-role="button" data-icon="search" data-ajax="false">Ask the pufferfish<br/>(bitly realtime search)<a/>
+
+      <div id="s_results"></div>
+       
+      </p>
+    <p style="font-size:16px;"><a href="javascript:history.back();" "data-rel="back" data-ajax="false" data-role="button" data-icon="arrow-l">Back</a></p>
+    </div>
+{% end %}

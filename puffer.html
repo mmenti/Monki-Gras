@@ -1,0 +1,27 @@
+{% extends "base_nomap.html" %}
+{% block page_content %}
+
+  <body">
+    <p style="text-align:center;">
+    </div>
+  </body>
+  <div id="main_page" data-role="page">
+    <div data-role="header">
+      <a href="/start" data-role="button" data-icon="home" data-inline="true" data-ajax="false">Home</a>
+      <h1>bitly results</h1>
+    </div>
+    <div data-role="content" style="text-align:center">
+    {% if err_msg == "" %}
+      <p style="font-weight:bold; margin-top:0;">{{ search_title }}</p>
+      <ul data-role="listview" data-inset="true" data-filter="true" data-filter-placeholder="Filter bitly results..." >
+        {% for result in results %}
+          <li><a href="{{result["url"]}}" data-ajax="false">{{ result["title"] }}</a></li>
+        {% end %}
+      </ul>
+    {% else %}
+       {{ escape(err_msg)  }}
+    {% end %}
+    <br/>
+    <p style="font-size:16px;"><a href="javascript:history.back();" "data-rel="back" data-ajax="false" data-role="button" data-icon="arrow-l">Back</a></p>
+    </div>
+{% end %}

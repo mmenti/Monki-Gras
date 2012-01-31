@@ -7,13 +7,30 @@ import datetime
 import string
 import time
 import os
+import functools
+import logging
+import urllib
 
-foursq_client_id = "2DQL0QOW0IIZKE4EBGVKII4TW1BFZGDXSF3YOKTSMMNLEVJ4"
-foursq_client_secret = "U104NTFKQXSHKZK24Y0O1JQXDXWCWQMP5DGW21J551B5WJCR"
-untappd_api_key = "074015fc7c38124a7fda0382b7e1cf18"
+
+foursq_client_id = YOUR_FOURSQUARE_CLIENT_ID
+foursq_client_secret = YOUR_FOURSQUARE_CLIENT_SECRET
+untappd_api_key = YOUR_UNTAPPD_API_KEY
+bitly_login = YOUR_BITLY_LOGIN
+bitly_api_key = YOUR_BITLY_API_KEY
 
 from tornado.options import define, options
 define("port", default=8888, help="run on the given port", type=int)
+
+_http_client = None
+
+def _get_http_client():
+  global _http_client
+  if not _http_client:
+    max_simultaneous_connections = 100
+    _http_client = tornado.httpclient.AsyncHTTPClient(max_simultaneous_connections=max_simultaneous_connections,
+      max_clients=100)
+  return _http_client
+
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
@@ -57,20 +74,6 @@ class StartHandler(tornado.web.RequestHandler):
           json = tornado.escape.json_decode(response.body)
           utpd_venue_ids = []
           utpd_venue_names = []
-          # for venue in json["response"]["venues"]:
-            # look up untappd venue id from 4sq id
-            # needs to be blocking?
-            # try:
-            #   blocking_http_client = tornado.httpclient.HTTPClient()
-            #   api_resp = blocking_http_client.fetch("http://api.untappd.com/v3/foursquare_lookup?key="+untappd_api_key+"&vid="+venue["id"])
-            #   api_json = tornado.escape.json_decode(api_resp.body)
-            #   for api_res in api_json["results"]:
-            #     utpd_venue_ids.append(api_res)
-            #     # utpd_venue_ids.append(api_res.untappd_venue_id)
-            #     # utpd_venue_names.append(api_res.venue_name)
-            # except tornado.httpclient.HTTPError, e:
-            #   # todo: error handling
-            #   pass
           self.render("start.html", title="start", lat=my_lat, lon=my_lon, acc=my_acc, venues=json["response"]["venues"])
 
     def on_untappd_response(self, response):
@@ -89,13 +92,16 @@ class UntappdHandler(tornado.web.RequestHandler):
     def on_response(self, response):
       if response.error:
         # todo: error handling
-        raise tornado.web.HTTPError(500)
+        self.render("detail_notfound.html", title="venue detail")
       else:
-        json = tornado.escape.json_decode(response.body)
-        if json["results"]["untappd_venue_id"] is not None:
-          http2 = tornado.httpclient.AsyncHTTPClient()
-          # get venue feed
-          http2.fetch("http://api.untappd.com/v3/venue_checkins?key="+untappd_api_key+"&venue_id="+json["results"]["untappd_venue_id"], callback=self.on_untappd_response)
+        try:
+          json = tornado.escape.json_decode(response.body)
+          if json["results"]["untappd_venue_id"]:
+            http2 = tornado.httpclient.AsyncHTTPClient()
+            # get venue feed
+            http2.fetch("http://api.untappd.com/v3/venue_checkins?key="+untappd_api_key+"&venue_id="+json["results"]["untappd_venue_id"], callback=self.on_untappd_response)
+        except:
+          self.render("detail_notfound.html", title="venue detail")
 
     def on_untappd_response(self, response):
       if response.error:
@@ -103,8 +109,64 @@ class UntappdHandler(tornado.web.RequestHandler):
         raise tornado.web.HTTPError(500)
       else:
         json = tornado.escape.json_decode(response.body)
-        self.render("detail.html", title="venue detail", lat=my_lat, lon=my_lon, acc=my_acc, data=json["results"])
+        self.render("detail.html", title="venue detail", lat=json["results"][0]["venue_lat"], lon=json["results"][0]["venue_lng"], venue_data=json["results"])
         
+
+class BeerHandler(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(self, beer_id):
+      http = tornado.httpclient.AsyncHTTPClient()
+      http.fetch("http://api.untappd.com/v3/beer_info?key="+untappd_api_key+"&bid="+beer_id, callback=self.on_response)
+
+    def on_response(self, response):
+      global beer_info
+      if response.error:
+        # todo: error handling
+        raise tornado.web.HTTPError(500)
+      else:
+        json = tornado.escape.json_decode(response.body)
+        beer_info = json["results"]
+        if json["results"]["brewery_id"] is not None:
+          http2 = tornado.httpclient.AsyncHTTPClient()
+          # get brewery info
+          http2.fetch("http://api.untappd.com/v3/brewery_info?key="+untappd_api_key+"&brewery_id="+json["results"]["brewery_id"], callback=self.on_brewery_response)
+
+    def on_brewery_response(self, response):
+      if response.error:
+        # todo: error handling
+        raise tornado.web.HTTPError(500)
+      else:
+        json = tornado.escape.json_decode(response.body)
+        self.render("beer.html", title="beer detail", beer_data=beer_info, brewery_data=json["results"])
+
+class PufferHandler(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(self, beer_name):
+      beername = beer_name
+      breweryname = self.get_argument("brewery", None)
+      http = tornado.httpclient.AsyncHTTPClient()
+      bitly_qstr = "http://api.bitly.com/beta/search?%s" % urllib.urlencode(dict(login=bitly_login, apiKey=bitly_api_key, query="+(!\"%s\" !\"%s\") +(!beer !ale)" % (beername, breweryname)))
+      req = tornado.httpclient.HTTPRequest(url=bitly_qstr,
+                    method="GET",
+                    follow_redirects=False,
+                    connect_timeout=20,
+                    request_timeout=20,
+                    user_agent="brew.lv")
+      http.fetch(req, callback=functools.partial(self.on_response, beername=beername))
+
+    def on_response(self, response, beername):
+      if response.error:
+        # todo: error handling
+        raise response.error
+      else:
+        json = tornado.escape.json_decode(response.body)
+        err_msg = ""
+        if json["data"]["search"]["numResults"] == 0:
+          err_msg = "Sadly we found no bitly search results for " + beername
+          self.render("puffer.html", title="bitly results", err_msg=err_msg)
+        else:
+          self.render("puffer.html", title="bitly results", err_msg=err_msg, results=json["data"]["results"], search_title="bitly results for " + beername)
+
 
 settings = {
     "static_path": os.path.join(os.path.dirname(__file__), "static"),
@@ -113,7 +175,9 @@ settings = {
 application = tornado.web.Application([
     (r"/", MainHandler),
     (r"/start", StartHandler),
-    (r"/untpd/(.*)", UntappdHandler),
+    (r"/pub/(.*)", UntappdHandler),
+    (r"/beer/(.*)", BeerHandler),
+    (r"/puffer/(.*)", PufferHandler),
 ], **settings)
 
 if __name__ == "__main__":

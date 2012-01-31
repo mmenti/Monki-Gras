@@ -1,57 +1,27 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-    <style type="text/css">
-      html { height: 100% }
-      body { height: 100%; margin: 0; padding: 0; }
-      #map_canvas { height: 100% }
-    </style>
-    <script type="text/javascript"
-      src="http://maps.googleapis.com/maps/api/js?key=AIzaSyA54UXZOH7U97oLcfNML5lZ37eKubP1ntA&sensor=true">
-    </script>
-    <script type="text/javascript">
-      function detectBrowser() {
-        var useragent = navigator.userAgent;
-        var mapdiv = document.getElementById("map_canvas");
-
-        if (useragent.indexOf('iPhone') != -1 || useragent.indexOf('Android') != -1 ) {
-          mapdiv.style.width = '100%';
-          mapdiv.style.height = '25%';
-        } else {
-          mapdiv.style.width = '600px';
-          mapdiv.style.height = '400px';
-        }
-      }
-      function initialize() {
-        detectBrowser();
-        var myLatLon = new google.maps.LatLng({{escape(lat)}},{{escape(lon)}});
-        var myOptions = {
-          center: myLatLon,
-          zoom: 16,
-          mapTypeId: google.maps.MapTypeId.ROADMAP
-        };
-        var map = new google.maps.Map(document.getElementById("map_canvas"),
-            myOptions);
-        var marker = new google.maps.Marker({
-            position: myLatLon,
-            title:"Your location"
-        });
-        marker.setMap(map);
-      }
-    </script>
-  </head>
-  <body onload="initialize()">
-    <p style="text-align:center;">Your location:</p>
-    <div id="map_canvas" style="width:40%; height:30%;margin:0px auto;"></div>
-
-    <p style="text-align:center;">Venues:</p>
-    <div id="4sq_venues" style="margin:0px auto;">
-    <p style="text-align:center;">
-      {% for xdata in data %}
-          {{ xdata["beer_name"] }} <br/>
-      {% end %}
-    </p>
+{% extends "base.html" %}
+{% block page_content %}
+  <div id="main_page" data-role="page">
+    <div data-role="header">
+      <a href="/start" data-role="button" data-icon="home" data-inline="true" data-ajax="false">Home</a>
+      <h1>{{ venue_data[0]["venue_name"] }}</h1>
     </div>
-  </body>
-</html>
+    <div data-role="content">
+      <div id="map_canvas" style="width:250px;height:150px;"></div>
+      <h2>Beer checkins</h2>
+      <ul data-role="listview" data-inset="true" data-filter="true" data-filter-placeholder="Filter beers..." >
+        {% for vdata in venue_data %}
+          {% set t_crdate = datetime.datetime.strptime(vdata["created_at"],"%a, %d %b %Y %H:%M:%S +0000") %}
+          {% set nice_date = t_crdate.strftime("%d %h %y") %}
+          <li><a href="/beer/{{vdata["beer_id"]}}" data-ajax="false">
+          <img class="ui-li-icon" style="height:20px;" src="{{vdata["beer_stamp"]}}" />
+          <h3>{{ escape(vdata["beer_name"]) }}</h3><p>({{ escape(vdata["brewery_name"]) }})</p>
+          {% if vdata["check_in_comment"] != "" %}
+          <p style="font-style:italic;">{{ escape(vdata["check_in_comment"]) }}</p>
+          {% end %}
+          <p class="ui-li-aside">{{ escape(nice_date) }}</p>
+          </a></li>
+        {% end %}
+      </ul>
+    <p style="font-size:16px;"><a href="javascript:history.back();" "data-rel="back" data-ajax="false" data-role="button" data-icon="arrow-l">Back</a></p>
+    </div>
+{% end %}

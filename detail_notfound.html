@@ -1,0 +1,13 @@
+{% extends "base_nomap.html" %}
+{% block page_content %}
+  <body>
+  <div id="main_page" data-role="page">
+    <div data-role="header">
+      <a href="/start" data-role="button" data-icon="home" data-inline="true" data-ajax="false">Home</a>
+      <h1>venue not found</h1>
+    </div>
+    <div data-role="content" style="text-align:center">
+    <p>I'm sorry, we couldn't find a matching Untappd venue.<br/>(Or there was a problem with the Untappd API.)</p>
+    <p style="font-size:16px;"><a href="javascript:history.back();" "data-rel="back" data-ajax="false" data-role="button" data-icon="arrow-l">Back</a></p>
+    </div>
+{% end %}
