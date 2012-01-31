@@ -19,5 +19,5 @@ Known Issues:
 - It currently lists all pubs near you, even if they don't exist in Untappd (clickng on the pub name will tell you). This is due to trying to limit the number of nNtappd API calls for the moment.
 - There are some issues with certain Unicode characters, both in the display, and in the Bitly search (leading to some 500 errors). I'll try and get that fixed when I get the time.
 
-Unkown Issues:
+Unknown Issues:
 - Likely quite a few
