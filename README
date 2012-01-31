@@ -1,0 +1,21 @@
+Brewlove - a mobile app concept knocked up quickly for the Monki Gras conference
+
+Prerequisites:
+- API keys for Foursquare, Untappd and Bitly search
+- Tornado web server
+
+Overview:
+A mobile web app (should work across most devices, Android and iOS etc.), using HTML5 and JQuery Mobile - making use of Bitly realtime search, Untappd and Foursquare.
+
+The concept is that it takes Untappd data, but starts at your location/the pubs around you, and then shows you what Untappd users have been drinking at each nearby pub. For each beer, you can then do a Bitly realtime search, to get up-to-date results mentioning that beer/brewery combination. 
+You allow it to see your location, and it lists pubs/bar in the vicinity (taken from foursquare API), and when clicking on a venue, it will show any recent beer checkins on Untappd at that venue, and you can then click through to the beer details. Under the beer details, there's a "bitly realtime search" button, which does a bitly search for that beer.
+
+I call it Brewlove - check it out on your mobile device at http://brew.lv
+
+Known Issues:
+- It only really works well if there is a fair number of Untappd users in pubs/bars around you
+- It currently lists all pubs near you, even if they don't exist in Untappd (clickng on the pub name will tell you). This is due to trying to limit the number of UNtappd API calls for the moment.
+- There are some issues with certain Unlaut characters, both in the display, and in the Bitly search (leading to some 500 errors). I'll try and get that fixed when I get the time.
+
+Unkown Issues:
+- Likely quite a few
