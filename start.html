@@ -5,12 +5,18 @@
       <h1>Your location</h1>
     </div>
     <div data-role="content">
-      <div id="map_canvas" style="width:250px;height:150px;"></div>
+      <div id="map_canvas" style="width:100%;height:150px;"></div>
       <h2>Nearby pubs</h2>
       <ul data-role="listview" data-inset="true" data-filter="true" data-filter-placeholder="Filter pubs..." >
         {% for venue in venues %}
           <li><a href="/pub/{{venue["id"]}}" data-ajax="false">{{ venue["name"] }}</a></li>
         {% end %}
+      </ul>
+      <h2>No pubs? Pretend you're in...</h2>
+      <ul data-role="listview" data-inset="true">
+      <li><a href="/start?lat=51.5195474&lon=-0.1184159" data-ajax="false">Monki Gras (London)</a></li>
+      <li><a href="/start?lat=40.717989272649&lon=-73.95275115966797" data-ajax="false">Williamsburg, Brooklyn</a></li>
+      <li><a href="/start?lat=37.78163720658547&lon=-122.40782260894775" data-ajax="false">Mission St, San Francisco</a></li>
       </ul>
     </div>
 {% end %}
