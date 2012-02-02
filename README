@@ -5,7 +5,7 @@ Prerequisites:
 - Tornado web server
 
 Overview:
-A mobile web app (should work across most devices, Android and iOS etc.), using HTML5 and JQuery Mobile - making use of Bitly realtime search, Untappd and Foursquare.
+A mobile web app for the Tornado web server (should work across most devices, Android and iOS etc.), written in Python and using HTML5 and JQuery Mobile - making use of Bitly realtime search, Untappd and Foursquare.
 
 The concept is that it takes Untappd data, but starts at your location/the pubs around you, and then shows you what Untappd users have been drinking at each nearby pub. For each beer, you can then do a Bitly realtime search, to get up-to-date results mentioning that beer/brewery combination. 
 You allow it to see your location, and it lists pubs/bar in the vicinity (taken from foursquare API), and when clicking on a venue, it will show any recent beer checkins on Untappd at that venue, and you can then click through to the beer details. Under the beer details, there's a "bitly realtime search" button, which does a bitly search for that beer.
